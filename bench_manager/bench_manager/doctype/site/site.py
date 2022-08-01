@@ -9,8 +9,8 @@ import re
 import shlex
 import time
 from subprocess import PIPE, Popen, check_output
-
 import frappe
+from frappe.utils.data import comma_and
 import pymysql
 from bench_manager.bench_manager.utils import (
 	safe_decode,
@@ -191,6 +191,16 @@ class Site(Document):
 				)
 			],
 		}
+		if caller == "backup":
+			import os
+			self.backup_file_list = ''
+			file_name=os.listdir("./{0}/private/backups".format(self.name))
+			for i in file_name:
+				if ('.gz') in i:
+					self.backup_file_list = self.backup_file_list + i
+					self.backup_file_list = self.backup_file_list +'\n'
+			self.save()
+			frappe.db.commit()
 		frappe.enqueue(
 			"bench_manager.bench_manager.utils.run_command",
 			commands=commands[caller],
@@ -310,3 +320,17 @@ def jop_site_creation(commands, doctype, key):
             site.update_app_list()
     site.save()
     frappe.db.commit()
+
+@frappe.whitelist()
+def create_restore_backup(doctype,site,caller,file_name,key,db_password):
+	commands = {
+		"restore":["bench --site {0} restore ./{0}/private/backups/{1} --db-root-password {2}".format(site,file_name,db_password)]
+	}
+	frappe.enqueue(
+			"bench_manager.bench_manager.utils.run_command",
+			commands=commands[caller],
+			doctype=doctype,
+			key=key,
+			docname=site,
+		)
+	

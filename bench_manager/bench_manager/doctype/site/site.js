@@ -84,6 +84,34 @@ frappe.ui.form.on('Site', {
 				caller: 'backup',
 			});
 		});
+		frm.add_custom_button(__('Restore'), function(){
+			let key = frappe.datetime.get_datetime_as_string();
+			frappe.prompt([
+				{
+					label: 'File Name',
+					fieldname: 'file_name',
+					fieldtype: 'Data'
+				},
+				{
+					label: 'DB Root Password',
+					fieldname: 'db_root',
+					fieldtype: 'Data'
+				},
+					], (values) => {
+					frappe.call({
+							method: "bench_manager.bench_manager.doctype.site.site.create_restore_backup",
+							args: {
+								doctype: frm.doctype,
+								site: frm.doc.name,
+								caller:'restore',
+								file_name : values.file_name,
+								key : key,
+								db_password : values.db_root
+							}
+						});
+				});
+		});
+		
 		frm.add_custom_button(__('Reinstall'), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',

@@ -18,7 +18,7 @@ def run_command(commands, doctype, key, cwd="..", docname=" ", after_command=Non
 	logged_command += (
 		" "  # to make sure passwords at the end of the commands are also hidden
 	)
-	sensitive_data = ["--mariadb-root-password", "--admin-password", "--root-password"]
+	sensitive_data = ["--mariadb-root-password", "--admin-password", "--root-password","--db-root-password"]
 	for password in sensitive_data:
 		logged_command = re.sub(
 			"{password} .*? ".format(password=password), "", logged_command, flags=re.DOTALL
